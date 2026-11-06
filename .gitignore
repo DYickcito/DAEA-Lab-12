@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+.vs/
+*.user
+**/ScaffoldTemporal/
+**/appsettings.Local.json
