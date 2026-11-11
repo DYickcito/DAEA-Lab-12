@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
-namespace DAEA_Lab_12.Models;
+namespace UmaSalud.Entidades.Models;
 
 [Table("pacientes")]
-[Index("HistoriaClinica", Name = "UQ_pacientes_historia", IsUnique = true)]
 public partial class Paciente
 {
     [Key]
@@ -38,4 +36,3 @@ public partial class Paciente
     [InverseProperty("Pacientes")]
     public virtual Especialidad? Especialidad { get; set; }
 }
-

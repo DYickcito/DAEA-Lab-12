@@ -1,67 +1,40 @@
-using DAEA_Lab_12.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.SqlClient;
+using UmaSalud.Entidades.Dtos;
+using UmaSalud.Negocio;
+using UmaSalud.Negocio.Servicios;
 
 namespace DAEA_Lab_12.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PacientesController(ClinicaContext db) : ControllerBase
+public class PacientesController(IPacienteServicio servicio) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Paciente>>> Get([FromQuery] string? nombre, [FromQuery] int? especialidadId)
-    {
-        var query = db.Pacientes.AsNoTracking().Include(p => p.Especialidad).AsQueryable();
-        if (!string.IsNullOrWhiteSpace(nombre)) query = query.Where(p => p.Nombre.Contains(nombre));
-        if (especialidadId.HasValue) query = query.Where(p => p.EspecialidadId == especialidadId);
-        return Ok(await query.OrderBy(p => p.Nombre).ToListAsync());
-    }
+    public async Task<ActionResult<List<PacienteDto>>> Get([FromQuery] string? nombre, [FromQuery] int? especialidadId) => Ok(await servicio.ListarAsync(nombre, especialidadId));
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Paciente>> Get(int id)
+    public async Task<ActionResult<PacienteDto>> Get(int id)
     {
-        var item = await db.Pacientes.AsNoTracking().Include(p => p.Especialidad).FirstOrDefaultAsync(p => p.Id == id);
+        var item = await servicio.ObtenerAsync(id);
         return item is null ? NotFound() : Ok(item);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Paciente>> Post(Paciente item)
+    public async Task<ActionResult<PacienteDto>> Post(PacienteCrearDto dto)
     {
-        if (!await db.Especialidades.AnyAsync(e => e.Id == item.EspecialidadId)) return BadRequest("La especialidad no existe.");
-        if (await db.Pacientes.AnyAsync(p => p.HistoriaClinica == item.HistoriaClinica)) return Conflict("La historia clínica ya existe.");
-        item.Id = 0; item.Especialidad = null;
-        db.Pacientes.Add(item);
-        try { await db.SaveChangesAsync(); }
-        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 }) { return Conflict("La historia clínica ya existe."); }
-        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 }) { return BadRequest("La especialidad no existe."); }
-        return CreatedAtAction(nameof(Get), new { id = item.Id }, item);
+        try { var item = await servicio.CrearAsync(dto); return CreatedAtAction(nameof(Get), new { id = item.Id }, item); }
+        catch (ReglaNegocioException ex) { return Conflict(ex.Message); }
+        catch (ArgumentException ex) { return BadRequest(ex.Message); }
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Put(int id, Paciente item)
+    public async Task<IActionResult> Put(int id, PacienteActualizarDto dto)
     {
-        if (id != item.Id) return BadRequest("El ID de la ruta no coincide con el cuerpo.");
-        var actual = await db.Pacientes.FindAsync(id);
-        if (actual is null) return NotFound();
-        if (!await db.Especialidades.AnyAsync(e => e.Id == item.EspecialidadId)) return BadRequest("La especialidad no existe.");
-        if (await db.Pacientes.AnyAsync(p => p.HistoriaClinica == item.HistoriaClinica && p.Id != id)) return Conflict("La historia clínica ya existe.");
-        actual.Nombre = item.Nombre; actual.HistoriaClinica = item.HistoriaClinica; actual.Edad = item.Edad;
-        actual.MotivoConsulta = item.MotivoConsulta; actual.EspecialidadId = item.EspecialidadId;
-        try { await db.SaveChangesAsync(); }
-        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 }) { return Conflict("La historia clínica ya existe."); }
-        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 }) { return BadRequest("La especialidad no existe."); }
-        return NoContent();
+        try { return await servicio.ActualizarAsync(id, dto) ? NoContent() : NotFound(); }
+        catch (ReglaNegocioException ex) { return Conflict(ex.Message); }
+        catch (ArgumentException ex) { return BadRequest(ex.Message); }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var item = await db.Pacientes.FindAsync(id);
-        if (item is null) return NotFound();
-        db.Pacientes.Remove(item);
-        await db.SaveChangesAsync();
-        return NoContent();
-    }
+    public async Task<IActionResult> Delete(int id) => await servicio.EliminarAsync(id) ? NoContent() : NotFound();
 }
-

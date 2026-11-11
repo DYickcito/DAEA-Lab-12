@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using UmaSalud.Entidades.Models;
 
-namespace DAEA_Lab_12.Models;
+namespace UmaSalud.Datos;
 
 public partial class ClinicaContext : DbContext
 {
@@ -17,6 +18,8 @@ public partial class ClinicaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Especialidad>().HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("UQ_especialidades_nombre");
+        modelBuilder.Entity<Paciente>().HasIndex(p => p.HistoriaClinica).IsUnique().HasDatabaseName("UQ_pacientes_historia");
         modelBuilder.Entity<Paciente>(entity =>
         {
             entity.HasOne(d => d.Especialidad).WithMany(p => p.Pacientes)
@@ -29,4 +32,3 @@ public partial class ClinicaContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
-

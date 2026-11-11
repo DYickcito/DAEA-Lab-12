@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 
-namespace DAEA_Lab_12.Models;
+namespace UmaSalud.Entidades.Models;
 
 [Table("especialidades")]
-[Index("Nombre", Name = "UQ_especialidades_nombre", IsUnique = true)]
 public partial class Especialidad
 {
     [Key]
@@ -23,8 +20,6 @@ public partial class Especialidad
     [Required, StringLength(250, MinimumLength = 5)]
     public string Descripcion { get; set; } = null!;
 
-    [JsonIgnore]
     [InverseProperty("Especialidad")]
     public virtual ICollection<Paciente> Pacientes { get; set; } = new List<Paciente>();
 }
-

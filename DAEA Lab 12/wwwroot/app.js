@@ -19,7 +19,7 @@ async function cargarPacientes() {
   try {
     const datos = await get('/api/pacientes?nombre=' + encodeURIComponent(buscar.value));
     if (actual !== solicitud) return;
-    pacientes.innerHTML = datos.length ? datos.map(p => `<tr><td>${escapeHtml(p.nombre)}</td><td>${escapeHtml(p.historiaClinica)}</td><td>${escapeHtml(p.edad)}</td><td>${escapeHtml(p.especialidad?.nombre)}</td><td>${escapeHtml(p.motivoConsulta)}</td></tr>`).join('') : '<tr><td colspan="5">No se encontraron pacientes.</td></tr>';
+    pacientes.innerHTML = datos.length ? datos.map(p => `<tr><td>${escapeHtml(p.nombre)}</td><td>${escapeHtml(p.historiaClinica)}</td><td>${escapeHtml(p.edad)}</td><td>${escapeHtml(p.especialidadNombre)}</td><td>${escapeHtml(p.motivoConsulta)}</td></tr>`).join('') : '<tr><td colspan="5">No se encontraron pacientes.</td></tr>';
   } catch { if (actual === solicitud) pacientes.innerHTML = '<tr><td colspan="5">No se pudieron cargar los pacientes. Comprueba la base de datos.</td></tr>'; }
 }
 buscar.addEventListener('input', cargarPacientes);

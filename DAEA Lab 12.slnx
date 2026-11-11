@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="DAEA Lab 12/DAEA Lab 12.csproj" />
+  <Project Path="UmaSalud.Entidades/UmaSalud.Entidades.csproj" />
+  <Project Path="UmaSalud.Datos/UmaSalud.Datos.csproj" />
+  <Project Path="UmaSalud.Negocio/UmaSalud.Negocio.csproj" />
 </Solution>
