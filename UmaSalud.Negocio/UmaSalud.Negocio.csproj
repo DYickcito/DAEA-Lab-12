@@ -7,5 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\UmaSalud.Datos\UmaSalud.Datos.csproj" />
     <PackageReference Include="AutoMapper" Version="15.1.1" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
   </ItemGroup>
 </Project>

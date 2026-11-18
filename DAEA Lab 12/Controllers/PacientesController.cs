@@ -1,12 +1,18 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UmaSalud.Entidades;
 using UmaSalud.Entidades.Dtos;
 using UmaSalud.Negocio;
 using UmaSalud.Negocio.Servicios;
 
 namespace DAEA_Lab_12.Controllers;
 
+// S14: la ficha de pacientes es información clínica, no pública:
+// cualquier usuario autenticado puede consultarla y registrarla;
+// solo el rol Medico puede eliminarla.
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PacientesController(IPacienteServicio servicio) : ControllerBase
 {
     [HttpGet]
@@ -35,6 +41,7 @@ public class PacientesController(IPacienteServicio servicio) : ControllerBase
         catch (ArgumentException ex) { return BadRequest(ex.Message); }
     }
 
+    [Authorize(Roles = Roles.Medico)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id) => await servicio.EliminarAsync(id) ? NoContent() : NotFound();
 }

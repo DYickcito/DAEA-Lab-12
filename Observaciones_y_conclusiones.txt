@@ -1,1 +1,31 @@
+Observaciones y conclusiones - S14 (autenticación JWT)
 
+1. La seguridad se repartió por capas: la entidad Usuario y los DTOs en Entidades; el
+   repositorio de usuarios en Datos; las reglas de registro, hash BCrypt y emisión del token
+   en Negocio; y los códigos HTTP en el AuthController de la API.
+
+2. El rol lo asigna siempre el servidor: RegistroDto no tiene campo Rol y AuthServicio
+   asigna "Recepcionista" a toda cuenta nueva. El rol "Medico" se otorga con un UPDATE
+   controlado en la base de datos.
+
+3. La regla de correo único se valida en el servicio y también con la restricción UNIQUE
+   de SQL Server. Si se rompe, ReglaNegocioException se traduce en 409 Conflict.
+
+4. El login devuelve null tanto si el correo no existe como si la clave es incorrecta; el
+   controlador responde 401 en ambos casos para no revelar qué correos están registrados.
+
+5. [Authorize] en los controladores deja todo cerrado por defecto; [AllowAnonymous] abre
+   solo el catálogo público y el registro/login, y [Authorize(Roles = "Medico")] limita las
+   operaciones clínicas. Así se obtienen los tres niveles: público, autenticado y por rol.
+   Sin token la respuesta es 401; con token pero sin el rol, 403.
+
+6. El perfil se arma con los claims del token (sub, email y rol), no con una consulta a la
+   base de datos: el token es la fuente de identidad durante la solicitud.
+
+7. La clave secreta (más de 32 caracteres) y la expiración se guardan en user-secrets, fuera
+   del repositorio. La API falla al arrancar si no están configuradas, lo que evita
+   desplegar con una clave débil o ausente.
+
+8. Conclusión: JWT permite separar "quién eres" (autenticación) de "qué puedes hacer"
+   (autorización). La matriz endpoint × rol documenta esas decisiones y las pruebas
+   realizadas confirman los códigos 200, 201, 204, 401, 403 y 409.

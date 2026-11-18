@@ -1,6 +1,77 @@
-@DAEA_Lab_12_HostAddress = http://localhost:5120
+@host = http://localhost:5120
+# Pega aquí los tokens que devuelve el login (sin la palabra Bearer)
+@recepcion = pega-aqui-token-recepcionista
+@medico = pega-aqui-token-medico
 
-GET {{DAEA_Lab_12_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Registro de un usuario (201). Repetirlo da 409; clave corta da 400
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{ "correo": "nueva@umasalud.com", "clave": "ClaveSegura123!" }
 
 ###
+### 2. Login Recepcionista (200). Copia el token de la respuesta
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "correo": "recepcion@umasalud.com", "clave": "Recepcion123!" }
+
+###
+### 3. Login Medico (200). Copia el token de la respuesta
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "correo": "medico@umasalud.com", "clave": "Medico123!" }
+
+###
+### 4. Login con clave incorrecta (401)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "correo": "recepcion@umasalud.com", "clave": "Incorrecta1!" }
+
+###
+### 5. Login con correo inexistente (401, igual que la clave incorrecta)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "correo": "nadie@umasalud.com", "clave": "Cualquiera1!" }
+
+###
+### 6. Perfil: solo autenticados (200 con token; 401 sin token)
+GET {{host}}/api/auth/perfil
+Authorization: Bearer {{recepcion}}
+
+###
+### 7. Catálogo público: no necesita token (200)
+GET {{host}}/api/especialidades
+
+###
+### 8. Pacientes: exige token (401 sin token; 200 con cualquier rol)
+GET {{host}}/api/pacientes
+Authorization: Bearer {{recepcion}}
+
+###
+### 9. Crear especialidad con Recepcionista: 403 (rol insuficiente)
+POST {{host}}/api/especialidades
+Content-Type: application/json
+Authorization: Bearer {{recepcion}}
+
+{ "nombre": "Cardiologia UMA", "descripcion": "Control cardiaco para atletas de UMA." }
+
+###
+### 10. Crear especialidad con Medico: 201
+POST {{host}}/api/especialidades
+Content-Type: application/json
+Authorization: Bearer {{medico}}
+
+{ "nombre": "Cardiologia UMA", "descripcion": "Control cardiaco para atletas de UMA." }
+
+###
+### 11. Eliminar paciente con Recepcionista: 403. Con el token del Medico da 204
+DELETE {{host}}/api/pacientes/1
+Authorization: Bearer {{recepcion}}
+
+###
+### 12. Solicitud sin token a un endpoint protegido: 401
+DELETE {{host}}/api/pacientes/1
