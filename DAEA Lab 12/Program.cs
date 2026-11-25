@@ -34,8 +34,15 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     }));
 
-builder.Services.AddDbContext<ClinicaContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Clinica")));
+// La cadena de conexión tampoco se guarda en el repositorio: user-secrets o
+// una variable de entorno como ConnectionStrings__Clinica.
+var conexion = builder.Configuration.GetConnectionString("Clinica");
+if (string.IsNullOrWhiteSpace(conexion))
+    throw new InvalidOperationException(
+        "Falta configurar ConnectionStrings:Clinica. Use 'dotnet user-secrets set \"ConnectionStrings:Clinica\" \"...\"' " +
+        "o una variable de entorno como ConnectionStrings__Clinica.");
+
+builder.Services.AddDbContext<ClinicaContext>(options => options.UseSqlServer(conexion));
 builder.Services.AddScoped<IEspecialidadRepositorio, EspecialidadRepositorio>();
 builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();   // S14

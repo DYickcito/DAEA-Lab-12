@@ -1,0 +1,97 @@
+# Todas las llamadas entran por el gateway (puerto 5000).
+# Antes, inicia los tres servicios: Uma Salud (5120), CitasApi (5121) y GatewayApi (5000).
+@gateway = http://localhost:5000
+# Pega aquí el token que devuelve el login (sin la palabra Bearer)
+@token = pega-aqui-el-token
+@tokenMedico = pega-aqui-el-token-del-medico
+
+### 1. Login por el gateway (200). Copia el token de la respuesta
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "medico@umasalud.com", "clave": "Medico123!" }
+
+### 2. Login Recepcionista por el gateway (200)
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "recepcion@umasalud.com", "clave": "Recepcion123!" }
+
+### 3. Registro público por el gateway (201; repetido = 409)
+POST {{gateway}}/gateway/auth/registro
+Content-Type: application/json
+
+{ "correo": "nueva@umasalud.com", "clave": "ClaveSegura123!" }
+
+### 4. GET público de especialidades, sin token (200)
+GET {{gateway}}/gateway/especialidades
+
+### 5. GET público de una especialidad (200) y una que no existe (404)
+GET {{gateway}}/gateway/especialidades/1
+
+### 6. GET de pacientes con token (200). Sin token responde 401 (lo exige la API)
+GET {{gateway}}/gateway/pacientes
+Authorization: Bearer {{token}}
+
+### 7. Crear un paciente SIN token: lo rechaza el gateway (401)
+POST {{gateway}}/gateway/pacientes
+Content-Type: application/json
+
+{ "nombre": "Kitasan Black", "historiaClinica": "UMA-100", "edad": 19, "motivoConsulta": "Chequeo general", "especialidadId": 1 }
+
+### 8. Crear un paciente CON token (201)
+POST {{gateway}}/gateway/pacientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "nombre": "Kitasan Black", "historiaClinica": "UMA-100", "edad": 19, "motivoConsulta": "Chequeo general", "especialidadId": 1 }
+
+### 9. Actualizar el paciente 5 (204)
+PUT {{gateway}}/gateway/pacientes/5
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "nombre": "Kitasan Black", "historiaClinica": "UMA-100", "edad": 20, "motivoConsulta": "Control anual", "especialidadId": 2 }
+
+### 10. Escritura con Recepcionista: el gateway acepta, la API responde 403 por rol
+POST {{gateway}}/gateway/especialidades
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "nombre": "Cardiologia UMA", "descripcion": "Control cardiaco para atletas de UMA." }
+
+### 11. Escritura con Medico: 201 (la API sí autoriza el rol)
+POST {{gateway}}/gateway/especialidades
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{ "nombre": "Cardiologia UMA", "descripcion": "Control cardiaco para atletas de UMA." }
+
+### 12. Eliminar una especialidad con Medico (204). Con Recepcionista da 403
+DELETE {{gateway}}/gateway/especialidades/4
+Authorization: Bearer {{tokenMedico}}
+
+### 13. Microservicio 2 (CitasApi): sin token el gateway responde 401
+GET {{gateway}}/gateway/citas
+
+### 14. Microservicio 2 con token: lista (200) y por id (200)
+GET {{gateway}}/gateway/citas
+Authorization: Bearer {{token}}
+
+### 15. Una cita que no existe por el gateway (404)
+GET {{gateway}}/gateway/citas/999
+Authorization: Bearer {{token}}
+
+### 16. Ruta que no existe en ocelot.json (404)
+GET {{gateway}}/gateway/no-existe
+
+### 17. Método no definido para citas (POST): 404
+POST {{gateway}}/gateway/citas
+Authorization: Bearer {{token}}
+
+### 18. Detén CitasApi y repite el paso 14: el gateway responde 502 (Bad Gateway)
+GET {{gateway}}/gateway/citas
+Authorization: Bearer {{token}}
+
+### 19. Llamada DIRECTA a CitasApi (5121) sin token: 401 (valida el JWT por su cuenta)
+GET http://localhost:5121/api/citas

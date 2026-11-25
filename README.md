@@ -18,7 +18,15 @@ La tabla se crea con `Usuarios.sql`, que se ejecuta **después** de `ClinicaUma.
 ## Cómo ejecutarlo
 
 1. En SQL Server, ejecuta `ClinicaUma.sql` y luego `Usuarios.sql`.
-2. Ajusta la cadena de conexión `ConnectionStrings:Clinica` de `appsettings.json` si tu instancia no es `localhost`.
+2. La cadena de conexión **tampoco está en el repositorio**: se configura con user-secrets
+   (o la variable de entorno `ConnectionStrings__Clinica`). Ajusta el servidor si tu instancia
+   no es `localhost`:
+
+   ```powershell
+   cd "DAEA Lab 12"
+   dotnet user-secrets set "ConnectionStrings:Clinica" "Server=localhost;Database=ClinicaUma;Trusted_Connection=True;TrustServerCertificate=True;"
+   ```
+
 3. La clave JWT y la expiración **no están en el repositorio**: se configuran con user-secrets
    (el proyecto ya tiene `UserSecretsId`):
 

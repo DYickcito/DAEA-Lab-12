@@ -3,4 +3,6 @@
   <Project Path="UmaSalud.Entidades/UmaSalud.Entidades.csproj" />
   <Project Path="UmaSalud.Datos/UmaSalud.Datos.csproj" />
   <Project Path="UmaSalud.Negocio/UmaSalud.Negocio.csproj" />
+  <Project Path="CitasApi/CitasApi.csproj" />
+  <Project Path="GatewayApi/GatewayApi.csproj" />
 </Solution>

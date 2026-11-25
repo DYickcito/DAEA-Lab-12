@@ -4,3 +4,12 @@
 *.user
 **/ScaffoldTemporal/
 **/appsettings.Local.json
+
+# Evidencia generada por los scripts de prueba
+evidencia-*.txt
+
+# Secretos y archivos locales que no deben subirse
+.env
+.env.*
+**/secrets.json
+*.log
